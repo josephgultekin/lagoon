@@ -327,6 +327,9 @@ const messageConsumer = async msg => {
       logger.info(`${openshiftProject}: Project ${openshiftProject}  does not exist, creating`)
       const projectrequestsPost = Promise.promisify(openshift.projectrequests.post, { context: openshift.projectrequests })
       await projectrequestsPost({ body: {"apiVersion":"v1","kind":"ProjectRequest","metadata":{"name":openshiftProject},"displayName":`[${projectName}] ${branchName}`} });
+      // label the new project with the lagoon/project
+      const namespacePatch = Promise.promisify(kubernetes.ns(openshiftProject).patch, { context: kubernetes.ns(openshiftProject) })
+      await namespacePatch({ body: { metadata: { labels: { "lagoon/project": safeProjectName } } } })
     } else {
       logger.error(err)
       throw new Error
